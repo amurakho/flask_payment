@@ -7,12 +7,13 @@
     <title>Title</title>
 </head>
 <body>
-    <form method="{{ data.method }}" action="https://payeer.com/api/merchant/process.php">
+    <form method="{{ method }}" action="https://payeer.com/api/merchant/process.php">
         <input name="lang" value="ru" />
         <input name="m_curorderid" value="{{ data.m_curorderid }}"/>
         <input name="m_historyid" value="{{ data.m_historyid }}"/>
         <input name="m_historytm" value="{{ data.m_historytm}}"/>
-        <input name="referer" value="{{ data.reffer }}"/><input type="submit"/>
+        <input name="referer" value="{{ data.referer }}"/>
+        <input type="submit"/>
     </form>
 </body>
 </html>

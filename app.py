@@ -81,9 +81,11 @@ def accept_usd():
 
 @app.route('/accept_rub')
 def accept_rub():
-    data = session.pop('data', None)
-    print(data)
-    return render_template('accept_rub.html', data=data)
+    data = session.pop('data', None)['data']
+    method = data['method']
+    data = data['data']
+    return render_template('accept_rub.html', data=data, method=method)
+
 
 if __name__ == '__main__':
     app.run()
