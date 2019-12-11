@@ -1,5 +1,6 @@
 import hashlib
-
+import requests
+import json
 
 BASE_CURRENCIES = {
     'usd': 840,
@@ -9,7 +10,7 @@ BASE_CURRENCIES = {
 
 SECRET_KEY = 'SecretKey01'
 
-PAYWAY = 'payeer_rub'
+PAYWAY_RUB = 'payeer_rub'
 
 CREATE_BILL_URL = 'https://core.piastrix.com/bill/create'
 

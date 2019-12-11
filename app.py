@@ -1,12 +1,14 @@
 import requests
 from flask import Flask, render_template, redirect, url_for, session
-from config import Config
+from config import Config, CREATE_PAYMENT_LOG_MESSAGE
 import json
+from datetime import datetime
 
 
 from forms import PaymentForm
 from additional import BASE_CURRENCIES,\
-    CREATE_BILL_URL, CREATE_INVOICE_URL, make_sign_string
+    CREATE_BILL_URL, CREATE_INVOICE_URL, make_sign_string, PAYWAY_RUB
+
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -17,7 +19,7 @@ def main_form():
     form = PaymentForm()
     if form.validate_on_submit():
         currency = BASE_CURRENCIES.get(form.currency.data)
-        # eur
+        # eur/PAY
         if currency == 978:
             # create sign string
             data = {
@@ -30,8 +32,12 @@ def main_form():
             data['description'] = form.description.data
             data['sign'] = sign
             session['data'] = data
+            app.logger.info(CREATE_PAYMENT_LOG_MESSAGE.format('PAY', data['amount'], data['currency'],
+                                                              data['shop_order_id'], datetime.now(),
+                                                                data['description']))
+
             return redirect(url_for('accept_usd'))
-        # usd
+        # usd/BILL
         elif currency == 840:
             # create sign string
             data = {
@@ -42,8 +48,14 @@ def main_form():
                 'payer_currency': currency,
             }
             sign = make_sign_string(data)
+            # maybe i should create function for creating request. But I thought it was redundant
             data['description'] = form.description.data
             data['sign'] = sign
+
+            app.logger.info(CREATE_PAYMENT_LOG_MESSAGE.format('BILL', data['shop_amount'], data['payer_currency'],
+                                                              data['shop_order_id'], datetime.now(),
+                                                                data['description']))
+
             data = json.dumps(data)
             headers = {'Content-type': 'application/json'}
             response = requests.post(CREATE_BILL_URL, data=data, headers=headers)
@@ -51,11 +63,12 @@ def main_form():
             if response_data['result']:
                 url = response_data['data']['url']
                 return redirect(url)
-        # rub
+        # rub/INVOICE
         elif currency == 643:
+            # create sign string
             data = {
                 "amount": str(form.amount.data),
-                "payway": "payeer_rub",
+                "payway": PAYWAY_RUB,
                 'shop_id': 5,
                 'shop_order_id': 123456,
                 "currency": str(currency)
@@ -63,6 +76,11 @@ def main_form():
             sign = make_sign_string(data)
             data['description'] = form.description.data
             data['sign'] = sign
+
+            app.logger.info(CREATE_PAYMENT_LOG_MESSAGE.format('BILL', data['amount'], data['currency'],
+                                                              data['shop_order_id'], datetime.now(),
+                                                                data['description']))
+
             data = json.dumps(data)
             headers = {'Content-type': 'application/json'}
             response = requests.post(CREATE_INVOICE_URL, data=data, headers=headers)
